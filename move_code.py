@@ -142,3 +142,67 @@ if __name__ == "__main__":
     scramble.execute("D B2 R2 B2 R2 D2 F2 U' L2 B2 R2 U B' L' F L F' L B2 R' D' F'", in_place=True)
     solution = find_solution(scramble)
     print(solution)
+
+from random import choice
+from typing import NewType
+
+letter = NewType("letter", str)
+
+
+def print_pairs(what: str | set[letter] | letter = "all", n: int = 1) -> None:
+    global corner_list, all_letters
+
+    def print_first_second(first_letter: set[letter] | letter, i: int) -> None:
+        if isinstance(first_letter, str):
+            first_letter = {letter(first_letter)}
+
+        all_possible: list[str] = []
+        for first in first_letter:
+            invalid_set: set[letter] = next(
+                group for group in corner_list if first in group
+            )
+            valid_seconds: set[letter] = all_letters - invalid_set
+            for second in valid_seconds:
+                all_possible.append(first + second)
+
+        sample_size: int = min(i, len(all_possible))
+        from random import sample
+
+        result: list[str] = sample(all_possible, sample_size)
+
+        print(" ".join(result), end=" ")
+
+    if type(what) is str and what.lower() == "all":
+        print_first_second(all_letters, n)
+    elif type(what) is str and len(what) == 1:
+        print_first_second(what, n)
+    elif type(what) is set:
+        print_first_second(what, n)
+    else:
+        raise ValueError("invalid argument in print_pairs function")
+
+
+def create_letters_set(letters_list: list):
+    return set([letter(element) for element in letters_list])
+
+
+corner_list: list[set] = [
+    {"A", "D", "O"},
+    {"B", "K", "N"},
+    {"C", "E", "H"},
+    {"J", "F", "S"},
+    {"I", "M", "T"},
+    {"G", "P", "W"},
+    {"L", "R", "U"},
+]
+
+all_letters: set = set([char for group in corner_list for char in group])
+
+
+if __name__ == "__main__":
+    letters_list: list = ['C', "E", "H"]
+    letters_set: set = create_letters_set(letters_list)
+    txt = ""
+    while txt == "":
+        print_pairs(letters_set, 4 )
+        txt = input()
