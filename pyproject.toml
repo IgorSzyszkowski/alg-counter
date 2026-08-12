@@ -1,0 +1,17 @@
+[project]
+name = "alg-counter"
+version = "0.1.0"
+description = "An algorithm counter for Rubik's cube scrambles"
+readme = "README.md"
+authors = [
+    { name = "Igor Szyszkowski", email = "i.szyszkowski06@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+alg-counter = "alg_counter:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
