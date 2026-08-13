@@ -1,13 +1,18 @@
 from dataclasses import dataclass, field
-from typing import Final, NewType
+from typing import NewType
 
+from alg_counter.model.color import Color
 
-cube_str = NewType("cube_str", str)
+CubeStr = NewType("CubeStr", str)
 """
 new type representing cube as string
 """
 
-SOLVED_CUBE = cube_str("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+SOLVED_CUBE = CubeStr("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+
+Corner = NewType("Corner", tuple[tuple[Color, Color, Color], tuple[int, int, int]])
+
+Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
 
 
 @dataclass
@@ -21,7 +26,7 @@ class Cube:
                     Defaults to a fully solved cube state.
     """
 
-    cube: cube_str = field(default=SOLVED_CUBE)
+    cube: CubeStr = field(default=SOLVED_CUBE)
 
     def __post_init__(self):
         self.moves_dict = {
@@ -44,6 +49,30 @@ class Cube:
             "B'": lambda: [self._b() for _ in range(3)],
             "B2": lambda: [self._b() for _ in range(2)],
         }
+        self.solved_corners = [
+            Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
+            Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
+            Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
+            Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
+            Corner(((Color.D, Color.F, Color.R), (29, 26, 15))),
+            Corner(((Color.D, Color.L, Color.F), (27, 44, 24))),
+            Corner(((Color.D, Color.B, Color.L), (33, 51, 42))),
+            Corner(((Color.D, Color.R, Color.B), (35, 17, 53))),
+        ]
+        self.solved_edges = [
+            Edge(((Color.U, Color.F), (7, 19))),
+            Edge(((Color.U, Color.B), (1, 46))),
+            Edge(((Color.U, Color.L), (3, 37))),
+            Edge(((Color.U, Color.R), (5, 10))),
+            Edge(((Color.F, Color.L), (21, 41))),
+            Edge(((Color.F, Color.R), (23, 12))),
+            Edge(((Color.L, Color.B), (39, 51))),
+            Edge(((Color.R, Color.B), (14, 48))),
+            Edge(((Color.D, Color.F), (28, 25))),
+            Edge(((Color.D, Color.B), (34, 52))),
+            Edge(((Color.D, Color.L), (30, 43))),
+            Edge(((Color.D, Color.R), (32, 16))),
+        ]
 
     def _rotate_face(self, start: int) -> None:
         chars = list(self.cube)
@@ -59,7 +88,7 @@ class Cube:
             face[5],
             face[2],
         ]
-        self.cube = "".join(chars)
+        self.cube = CubeStr("".join(chars))
 
     def _u(self) -> None:
         self._rotate_face(0)
@@ -69,7 +98,7 @@ class Cube:
         c[9:12] = c[45:48]
         c[45:48] = c[36:39]
         c[36:39] = temp
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def _d(self) -> None:
         self._rotate_face(27)
@@ -79,7 +108,7 @@ class Cube:
         c[42:45] = c[51:54]
         c[51:54] = c[15:18]
         c[15:18] = temp
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def _l(self) -> None:
         self._rotate_face(36)
@@ -89,7 +118,7 @@ class Cube:
         c[53], c[50], c[47] = c[27], c[30], c[33]
         c[27], c[30], c[33] = c[18], c[21], c[24]
         c[18], c[21], c[24] = temp[0], temp[1], temp[2]
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def _r(self) -> None:
         self._rotate_face(9)
@@ -99,7 +128,7 @@ class Cube:
         c[20], c[23], c[26] = c[29], c[32], c[35]
         c[29], c[32], c[35] = c[51], c[48], c[45]
         c[51], c[48], c[45] = temp[0], temp[1], temp[2]
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def _f(self) -> None:
         self._rotate_face(18)
@@ -109,7 +138,7 @@ class Cube:
         c[44], c[41], c[38] = c[29], c[28], c[27]
         c[29], c[28], c[27] = c[9], c[12], c[15]
         c[9], c[12], c[15] = temp[0], temp[1], temp[2]
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def _b(self) -> None:
         self._rotate_face(45)
@@ -119,7 +148,7 @@ class Cube:
         c[11], c[14], c[17] = c[35], c[34], c[33]
         c[35], c[34], c[33] = c[42], c[39], c[36]
         c[42], c[39], c[36] = temp[0], temp[1], temp[2]
-        self.cube = "".join(c)
+        self.cube = CubeStr("".join(c))
 
     def apply_move(self, move: str) -> None:
         if move in self.moves_dict:
@@ -130,5 +159,18 @@ class Cube:
     def __str__(self) -> str:
         cube_to_string = ""
         for i in range(6):
-            cube_to_string += self.cube[i * 9: 9 + i * 9] + "\n"
+            cube_to_string += self.cube[i * 9 : 9 + i * 9] + "\n"
         return cube_to_string.strip()
+
+    def adjust_for_parity(self) -> None:
+        colors_0, coords_0 = self.solved_corners[0]
+        colors_3, coords_3 = self.solved_corners[3]
+
+        self.solved_corners[0] = (colors_3, coords_0)
+        self.solved_corners[3] = (colors_0, coords_3)
+
+    def get_current_corners(self):
+        pass
+
+    def get_current_edges(self):
+        pass
