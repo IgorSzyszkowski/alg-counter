@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import NewType
 
-from alg_counter.model.color import Color
+from alg_counter.model.color import Color, to_color
 
 CubeStr = NewType("CubeStr", str)
 """
@@ -13,6 +13,31 @@ SOLVED_CUBE = CubeStr("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
 Corner = NewType("Corner", tuple[tuple[Color, Color, Color], tuple[int, int, int]])
 
 Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
+
+solved_corners = [
+    Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
+    Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
+    Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
+    Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
+    Corner(((Color.D, Color.F, Color.R), (29, 26, 15))),
+    Corner(((Color.D, Color.L, Color.F), (27, 44, 24))),
+    Corner(((Color.D, Color.B, Color.L), (33, 53, 42))),
+    Corner(((Color.D, Color.R, Color.B), (35, 17, 51))),
+]
+solved_edges = [
+    Edge(((Color.U, Color.F), (7, 19))),
+    Edge(((Color.U, Color.B), (1, 46))),
+    Edge(((Color.U, Color.L), (3, 37))),
+    Edge(((Color.U, Color.R), (5, 10))),
+    Edge(((Color.F, Color.L), (21, 41))),
+    Edge(((Color.F, Color.R), (23, 12))),
+    Edge(((Color.L, Color.B), (39, 50))),
+    Edge(((Color.R, Color.B), (14, 48))),
+    Edge(((Color.D, Color.F), (28, 25))),
+    Edge(((Color.D, Color.B), (34, 52))),
+    Edge(((Color.D, Color.L), (30, 43))),
+    Edge(((Color.D, Color.R), (32, 16))),
+]
 
 
 @dataclass
@@ -49,30 +74,8 @@ class Cube:
             "B'": lambda: [self._b() for _ in range(3)],
             "B2": lambda: [self._b() for _ in range(2)],
         }
-        self.solved_corners = [
-            Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
-            Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
-            Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
-            Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
-            Corner(((Color.D, Color.F, Color.R), (29, 26, 15))),
-            Corner(((Color.D, Color.L, Color.F), (27, 44, 24))),
-            Corner(((Color.D, Color.B, Color.L), (33, 51, 42))),
-            Corner(((Color.D, Color.R, Color.B), (35, 17, 53))),
-        ]
-        self.solved_edges = [
-            Edge(((Color.U, Color.F), (7, 19))),
-            Edge(((Color.U, Color.B), (1, 46))),
-            Edge(((Color.U, Color.L), (3, 37))),
-            Edge(((Color.U, Color.R), (5, 10))),
-            Edge(((Color.F, Color.L), (21, 41))),
-            Edge(((Color.F, Color.R), (23, 12))),
-            Edge(((Color.L, Color.B), (39, 51))),
-            Edge(((Color.R, Color.B), (14, 48))),
-            Edge(((Color.D, Color.F), (28, 25))),
-            Edge(((Color.D, Color.B), (34, 52))),
-            Edge(((Color.D, Color.L), (30, 43))),
-            Edge(((Color.D, Color.R), (32, 16))),
-        ]
+        self.solved_corners = solved_corners
+        self.solved_edges = solved_edges
 
     def _rotate_face(self, start: int) -> None:
         chars = list(self.cube)
@@ -163,14 +166,39 @@ class Cube:
         return cube_to_string.strip()
 
     def adjust_for_parity(self) -> None:
-        colors_0, coords_0 = self.solved_corners[0]
-        colors_3, coords_3 = self.solved_corners[3]
+        colors_0, coords_0 = self.solved_edges[0]
+        colors_3, coords_3 = self.solved_edges[3]
 
-        self.solved_corners[0] = (colors_3, coords_0)
-        self.solved_corners[3] = (colors_0, coords_3)
+        self.solved_edges[0] = (colors_3, coords_0)
+        self.solved_edges[3] = (colors_0, coords_3)
 
-    def get_current_corners(self):
-        pass
+    def get_current_corners(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
+        result_dict = {}
+        for corner_key in self.solved_corners:
+            corner_value = tuple()
+            current_colors = (to_color(self.cube[corner_key[1][0]]), to_color(self.cube[corner_key[1][1]]), to_color(self.cube[corner_key[1][2]]))
+            for corner in self.solved_corners:
+                if set(current_colors) == set(corner[0]):
+                    if current_colors[0] == corner[0][0]:
+                        corner_value = corner[1]
+                    elif current_colors[0] == corner[0][1]:
+                        corner_value = corner[1][1:] + corner[1][0:1]
+                    else:
+                        corner_value = corner[1][2:3] + corner[1][:2]
+            result_dict[corner_key[1]] = corner_value
+        return result_dict
 
-    def get_current_edges(self):
-        pass
+    def get_current_edges(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
+        result_dict = {}
+        for edge_key in self.solved_edges:
+            edge_value = tuple()
+            current_colors = (to_color(self.cube[edge_key[1][0]]), to_color(self.cube[edge_key[1][1]]))
+            for edge in self.solved_edges:
+                if set(current_colors) == set(edge[0]):
+                    if current_colors[0] == edge[0][0]:
+                        edge_value = edge[1]
+                    else:
+                        edge_value = edge[1][1:2] + edge[1][0:1]
+            result_dict[edge_key[1]] = edge_value
+        return result_dict
+
