@@ -188,7 +188,7 @@ class Cube:
             result_dict[corner_key[1]] = corner_value
         return result_dict
 
-    def get_current_edges(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
+    def get_current_edges(self) -> dict[tuple[int, int], tuple[int, int]]:
         result_dict = {}
         for edge_key in self.solved_edges:
             edge_value = tuple()
