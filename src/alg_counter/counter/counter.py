@@ -37,11 +37,11 @@ class Counter:
                 solved += 1/3
         target = self.corners_dict[self.state.corner_buffer_position]
         self.remove_element(self.state.corner_buffer_position)
-        i = 0
-        while solved < 7 and i < 30:
+        while solved < 7:
             if set(target) == set(self.state.corner_buffer_position):
-                new_target = self.corners_dict[list(self.corners_dict.keys())[0]]
-                self.corners_dict[list(self.corners_dict.keys())[0]] = target
+                target_broken_into = list(self.corners_dict.keys())[0]
+                new_target = self.corners_dict[target_broken_into]
+                self.change_element(target_broken_into, target)
                 target = new_target
             else:
                 new_target = self.corners_dict[target]
@@ -49,7 +49,6 @@ class Counter:
                 self.remove_element(target)
                 target = new_target
             targets += 1
-            i += 1
         if targets % 2 == 1:
             self.state.parity = True
         return targets // 2 + ceil((corners_twisted + (0 if num_of_twists % 3 == 0 else 1)) / 2)
@@ -74,8 +73,9 @@ class Counter:
         self.remove_element(self.state.edge_buffer_position)
         while solved < 11:
             if set(target) == set(self.state.edge_buffer_position):
-                new_target = self.edges_dict[list(self.edges_dict.keys())[0]]
-                self.edges_dict[list(self.edges_dict.keys())[0]] = target
+                target_broken_into = list(self.edges_dict.keys())[0]
+                new_target = self.edges_dict[target_broken_into]
+                self.change_element(target_broken_into, target)
                 target = new_target
             else:
                 new_target = self.edges_dict[target]
@@ -104,3 +104,12 @@ class Counter:
             self.corners_dict.pop(coords)
             self.corners_dict.pop(coords[1:] + coords[:1])
             self.corners_dict.pop(coords[2:] + coords[:2])
+
+    def change_element(self, coords_key: tuple[int, int, int] | tuple[int, int], coords_new: tuple[int, int, int] | tuple[int, int]) -> None:
+        if len(coords_key) == 2:
+            self.edges_dict[coords_key] = coords_new
+            self.edges_dict[coords_key[1:] + coords_key[:1]] = coords_new[1:] + coords_new[:1]
+        elif len(coords_key) == 3:
+            self.corners_dict[coords_key] = coords_new
+            self.corners_dict[coords_key[1:] + coords_key[:1]] = coords_new[1:] + coords_new[:1]
+            self.corners_dict[coords_key[2:] + coords_key[:2]] = coords_new[2:] + coords_new[:2]
