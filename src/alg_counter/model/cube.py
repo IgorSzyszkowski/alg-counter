@@ -74,8 +74,8 @@ class Cube:
             "B'": lambda: [self._b() for _ in range(3)],
             "B2": lambda: [self._b() for _ in range(2)],
         }
-        self.solved_corners = solved_corners
-        self.solved_edges = solved_edges
+        self.solved_corners = solved_corners.copy()
+        self.solved_edges = solved_edges.copy()
 
     def _rotate_face(self, start: int) -> None:
         chars = list(self.cube)

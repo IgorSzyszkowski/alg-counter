@@ -37,7 +37,7 @@ class Counter:
                 solved += 1/3
         target = self.corners_dict[self.state.corner_buffer_position]
         self.remove_element(self.state.corner_buffer_position)
-        while solved < 7:
+        while round(solved) < 7:
             if set(target) == set(self.state.corner_buffer_position):
                 target_broken_into = list(self.corners_dict.keys())[0]
                 new_target = self.corners_dict[target_broken_into]
