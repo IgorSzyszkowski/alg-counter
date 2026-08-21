@@ -175,8 +175,12 @@ class Cube:
     def get_current_corners(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
         result_dict = {}
         for corner_key in self.solved_corners:
-            corner_value = tuple()
-            current_colors = (to_color(self.cube[corner_key[1][0]]), to_color(self.cube[corner_key[1][1]]), to_color(self.cube[corner_key[1][2]]))
+            corner_value = ()
+            current_colors = (
+                to_color(self.cube[corner_key[1][0]]),
+                to_color(self.cube[corner_key[1][1]]),
+                to_color(self.cube[corner_key[1][2]]),
+            )
             for corner in self.solved_corners:
                 if set(current_colors) == set(corner[0]):
                     if current_colors[0] == corner[0][0]:
@@ -191,8 +195,11 @@ class Cube:
     def get_current_edges(self) -> dict[tuple[int, int], tuple[int, int]]:
         result_dict = {}
         for edge_key in self.solved_edges:
-            edge_value = tuple()
-            current_colors = (to_color(self.cube[edge_key[1][0]]), to_color(self.cube[edge_key[1][1]]))
+            edge_value = ()
+            current_colors = (
+                to_color(self.cube[edge_key[1][0]]),
+                to_color(self.cube[edge_key[1][1]]),
+            )
             for edge in self.solved_edges:
                 if set(current_colors) == set(edge[0]):
                     if current_colors[0] == edge[0][0]:
@@ -201,4 +208,3 @@ class Cube:
                         edge_value = edge[1][1:2] + edge[1][0:1]
             result_dict[edge_key[1]] = edge_value
         return result_dict
-

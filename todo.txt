@@ -1,0 +1,4 @@
+switch to tnoodle scramble generator
+get path of memo from scramble
+ruff check format
+docstrings

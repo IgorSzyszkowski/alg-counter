@@ -9,6 +9,7 @@ class Color(Enum):
     B = auto()
     F = auto()
 
+
 def to_color(color: str) -> Color | None:
     match color:
         case "U":

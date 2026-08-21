@@ -1,8 +1,7 @@
+import random
 from dataclasses import dataclass
 
 from alg_counter.model.cube import Cube
-
-import random
 
 
 @dataclass
@@ -38,34 +37,33 @@ class Scramble:
 
     @staticmethod
     def get_wca_scramble(length: int = 20) -> str:
-        faces = ['U', 'D', 'L', 'R', 'F', 'B']
-        mods = ['', "'", '2']
+        faces = ["U", "D", "L", "R", "F", "B"]
+        mods = ["", "'", "2"]
         scramble = []
-        
-        opposites = {
-            'U': 'D', 'D': 'U',
-            'L': 'R', 'R': 'L',
-            'F': 'B', 'B': 'F'
-        }
-        
+
+        opposites = {"U": "D", "D": "U", "L": "R", "R": "L", "F": "B", "B": "F"}
+
         last_face = None
         prev_face = None
-        
+
         for _ in range(length):
             available = list(faces)
-            
+
             if last_face is not None:
                 available.remove(last_face)
-                
-            if prev_face is not None and last_face == opposites.get(prev_face):
-                if prev_face in available:
-                    available.remove(prev_face)
-            
+
+            if (
+                prev_face is not None
+                and last_face == opposites.get(prev_face)
+                and prev_face in available
+            ):
+                available.remove(prev_face)
+
             face = random.choice(available)
             mod = random.choice(mods)
             scramble.append(f"{face}{mod}")
-            
+
             prev_face = last_face
             last_face = face
-            
+
         return " ".join(scramble)
