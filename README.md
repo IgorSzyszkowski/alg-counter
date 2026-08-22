@@ -92,11 +92,6 @@ uv run ruff check .
 uv run mypy .
 ```
 
-## Limitations
-
-- The buffer (`UFR` / `UF`) and orientation (`W`/`G`) are hardcoded via the default `State()` — not yet exposed as CLI flags, even though `State` supports any buffer and all 24 orientations.
-- An invalid scramble raises an unhandled `ValueError` instead of a clean CLI error message.
-
 ## License
 
 See [`LICENSE`](./LICENSE).

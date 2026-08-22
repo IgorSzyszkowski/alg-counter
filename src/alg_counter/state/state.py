@@ -5,8 +5,6 @@ Module defining the simulation state, including buffers, parity, and cube orient
 from alg_counter.model.color import Color, to_color
 from alg_counter.model.cube import solved_corners, solved_edges
 
-# Maps a starting orientation (Top color, Front color) to a dictionary
-# that translates logical standard faces to the newly oriented physical faces.
 color_transition_dict: dict[tuple[str, str], dict[Color, Color]] = {
     ("W", "G"): {
         Color.U: Color.U,
@@ -204,20 +202,6 @@ color_transition_dict: dict[tuple[str, str], dict[Color, Color]] = {
 
 
 class State:
-    """State of the cube containing important information during the solving simulation.
-
-    Tracks the chosen buffers, the cube's orientation, parity status,
-    and translates logical buffer strings into their physical string indices.
-
-    Attributes:
-        corner_buffer (str): The logical representation of the corner buffer (e.g., "UFR").
-        edge_buffer (str): The logical representation of the edge buffer (e.g., "UF").
-        orientation (tuple[str, str]): The orientation of the cube as (Top, Front) colors (e.g., ("W", "G")).
-        parity (bool): Flag indicating if the cube state currently has parity (odd number of targets).
-        corner_buffer_position (tuple[int, int, int]): The physical indices of the corner buffer on the cube string.
-        edge_buffer_position (tuple[int, int]): The physical indices of the edge buffer on the cube string.
-    """
-
     corner_buffer: str
     edge_buffer: str
     orientation: tuple[str, str]
@@ -234,10 +218,28 @@ class State:
         """Initializes the State object and calculates physical buffer positions.
 
         Args:
-            orientation (tuple[str, str], optional): The starting orientation (Top, Front). Defaults to ("W", "G").
-            corner_buffer (str, optional): The logical corner buffer position. Defaults to "UFR".
-            edge_buffer (str, optional): The logical edge buffer position. Defaults to "UF".
+            orientation (tuple[str, str], optional): Starting orientation as
+                (top color, front color), e.g. ("W", "G"). Must be one of the
+                24 valid adjacent-color combinations. Defaults to ("W", "G").
+            corner_buffer (str, optional): Logical corner buffer, three distinct
+                face letters (e.g. "UFR"). Defaults to "UFR".
+            edge_buffer (str, optional): Logical edge buffer, two distinct face
+                letters (e.g. "UF"). Defaults to "UF".
+
+        Raises:
+            ValueError: If the orientation is not one of the 24 valid
+                (top, front) combinations, or if a buffer is not a real,
+                well-formed corner/edge.
         """
+        if orientation not in color_transition_dict:
+            valid = ", ".join(
+                f"{top}{front}" for top, front in sorted(color_transition_dict)
+            )
+            raise ValueError(
+                f"Invalid orientation {orientation!r}. "
+                f"Valid (top, front) combinations: {valid}"
+            )
+
         self.orientation = orientation
         self.corner_buffer = corner_buffer
         self.edge_buffer = edge_buffer
@@ -251,8 +253,17 @@ class State:
         based on the current cube orientation and stores it in `self.corner_buffer_position`.
 
         Raises:
-            ValueError: If the `corner_buffer` string contains an invalid face character.
+            ValueError: If the `corner_buffer` string contains an invalid face
+                character, isn't exactly 3 distinct letters, or doesn't
+                correspond to a real corner (faces must be mutually adjacent).
         """
+        upper_buffer = self.corner_buffer.upper()
+        if len(upper_buffer) != 3 or len(set(upper_buffer)) != 3:
+            raise ValueError(
+                f"Corner buffer must be exactly 3 distinct face letters, "
+                f"got: {self.corner_buffer!r}"
+            )
+
         current_transition = color_transition_dict[self.orientation]
 
         transitioned_colors = []
@@ -272,7 +283,12 @@ class State:
                     self.corner_buffer_position = corner[1][1:] + corner[1][:1]
                 else:
                     self.corner_buffer_position = corner[1][2:] + corner[1][:2]
-                break
+                return
+
+        raise ValueError(
+            f"{self.corner_buffer!r} is not a valid corner "
+            f"(the three faces must be mutually adjacent)."
+        )
 
     def get_edge_buffer_position(self) -> None:
         """Calculates the physical string indices for the chosen edge buffer.
@@ -281,8 +297,17 @@ class State:
         based on the current cube orientation and stores it in `self.edge_buffer_position`.
 
         Raises:
-            ValueError: If the `edge_buffer` string contains an invalid face character.
+            ValueError: If the `edge_buffer` string contains an invalid face
+                character, isn't exactly 2 distinct letters, or doesn't
+                correspond to a real edge (faces must be adjacent).
         """
+        upper_buffer = self.edge_buffer.upper()
+        if len(upper_buffer) != 2 or len(set(upper_buffer)) != 2:
+            raise ValueError(
+                f"Edge buffer must be exactly 2 distinct face letters, "
+                f"got: {self.edge_buffer!r}"
+            )
+
         current_transition = color_transition_dict[self.orientation]
 
         transitioned_colors = []
@@ -300,4 +325,8 @@ class State:
                     self.edge_buffer_position = edge[1]
                 else:
                     self.edge_buffer_position = (edge[1][1], edge[1][0])
-                break
+                return
+
+        raise ValueError(
+            f"{self.edge_buffer!r} is not a valid edge (the two faces must be adjacent)."
+        )

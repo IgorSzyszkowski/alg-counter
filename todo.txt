@@ -2,3 +2,4 @@ switch to tnoodle scramble generator
 get path of memo from scramble
 dopisać proste testy, mock
 dodać wide movy
+usunąć limitations z readme i poprawić co tam jest
