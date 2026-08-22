@@ -1,7 +1,13 @@
+"""
+Module defining the simulation state, including buffers, parity, and cube orientation.
+"""
+
 from alg_counter.model.color import Color, to_color
 from alg_counter.model.cube import solved_corners, solved_edges
 
-color_transition_dict = {
+# Maps a starting orientation (Top color, Front color) to a dictionary
+# that translates logical standard faces to the newly oriented physical faces.
+color_transition_dict: dict[tuple[str, str], dict[Color, Color]] = {
     ("W", "G"): {
         Color.U: Color.U,
         Color.R: Color.R,
@@ -198,7 +204,19 @@ color_transition_dict = {
 
 
 class State:
-    """State of the cube containing important information during solving simulation"""
+    """State of the cube containing important information during the solving simulation.
+
+    Tracks the chosen buffers, the cube's orientation, parity status,
+    and translates logical buffer strings into their physical string indices.
+
+    Attributes:
+        corner_buffer (str): The logical representation of the corner buffer (e.g., "UFR").
+        edge_buffer (str): The logical representation of the edge buffer (e.g., "UF").
+        orientation (tuple[str, str]): The orientation of the cube as (Top, Front) colors (e.g., ("W", "G")).
+        parity (bool): Flag indicating if the cube state currently has parity (odd number of targets).
+        corner_buffer_position (tuple[int, int, int]): The physical indices of the corner buffer on the cube string.
+        edge_buffer_position (tuple[int, int]): The physical indices of the edge buffer on the cube string.
+    """
 
     corner_buffer: str
     edge_buffer: str
@@ -213,6 +231,13 @@ class State:
         corner_buffer: str = "UFR",
         edge_buffer: str = "UF",
     ):
+        """Initializes the State object and calculates physical buffer positions.
+
+        Args:
+            orientation (tuple[str, str], optional): The starting orientation (Top, Front). Defaults to ("W", "G").
+            corner_buffer (str, optional): The logical corner buffer position. Defaults to "UFR".
+            edge_buffer (str, optional): The logical edge buffer position. Defaults to "UF".
+        """
         self.orientation = orientation
         self.corner_buffer = corner_buffer
         self.edge_buffer = edge_buffer
@@ -220,10 +245,25 @@ class State:
         self.get_edge_buffer_position()
 
     def get_corner_buffer_position(self) -> None:
+        """Calculates the physical string indices for the chosen corner buffer.
+
+        Translates the logical corner buffer (e.g., "UFR") into physical indices
+        based on the current cube orientation and stores it in `self.corner_buffer_position`.
+
+        Raises:
+            ValueError: If the `corner_buffer` string contains an invalid face character.
+        """
         current_transition = color_transition_dict[self.orientation]
-        transitioned_corner_buffer = tuple(
-            current_transition[to_color(letter)] for letter in self.corner_buffer
-        )
+
+        transitioned_colors = []
+        for letter in self.corner_buffer:
+            color_enum = to_color(letter)
+            if color_enum is None:
+                raise ValueError(f"Invalid face character in corner buffer: {letter}")
+            transitioned_colors.append(current_transition[color_enum])
+
+        transitioned_corner_buffer = tuple(transitioned_colors)
+
         for corner in solved_corners:
             if set(corner[0]) == set(transitioned_corner_buffer):
                 if transitioned_corner_buffer[0] == corner[0][0]:
@@ -232,15 +272,32 @@ class State:
                     self.corner_buffer_position = corner[1][1:] + corner[1][:1]
                 else:
                     self.corner_buffer_position = corner[1][2:] + corner[1][:2]
+                break
 
     def get_edge_buffer_position(self) -> None:
+        """Calculates the physical string indices for the chosen edge buffer.
+
+        Translates the logical edge buffer (e.g., "UF") into physical indices
+        based on the current cube orientation and stores it in `self.edge_buffer_position`.
+
+        Raises:
+            ValueError: If the `edge_buffer` string contains an invalid face character.
+        """
         current_transition = color_transition_dict[self.orientation]
-        transitioned_edge_buffer = tuple(
-            current_transition[to_color(letter)] for letter in self.edge_buffer
-        )
+
+        transitioned_colors = []
+        for letter in self.edge_buffer:
+            color_enum = to_color(letter)
+            if color_enum is None:
+                raise ValueError(f"Invalid face character in edge buffer: {letter}")
+            transitioned_colors.append(current_transition[color_enum])
+
+        transitioned_edge_buffer = tuple(transitioned_colors)
+
         for edge in solved_edges:
             if set(edge[0]) == set(transitioned_edge_buffer):
                 if transitioned_edge_buffer[0] == edge[0][0]:
                     self.edge_buffer_position = edge[1]
                 else:
                     self.edge_buffer_position = (edge[1][1], edge[1][0])
+                break

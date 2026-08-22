@@ -1,19 +1,27 @@
+"""
+Module defining the Rubik's Cube model and its internal state.
+
+Provides the `Cube` class used to simulate cube rotations and track the
+positions of edges and corners, which is crucial for algorithms counting (e.g., in BLD solving).
+"""
+
 from dataclasses import dataclass, field
 from typing import NewType
 
 from alg_counter.model.color import Color, to_color
 
 CubeStr = NewType("CubeStr", str)
-"""
-new type representing cube as string
-"""
+"""NewType representing the cube state as a 54-character string."""
 
 SOLVED_CUBE = CubeStr("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
 
 Corner = NewType("Corner", tuple[tuple[Color, Color, Color], tuple[int, int, int]])
+"""NewType representing a corner's colors and its corresponding indices on the cube string."""
 
 Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
+"""NewType representing an edge's colors and its corresponding indices on the cube string."""
 
+# Reference lists for a solved cube state
 solved_corners = [
     Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
     Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
@@ -24,6 +32,7 @@ solved_corners = [
     Corner(((Color.D, Color.B, Color.L), (33, 53, 42))),
     Corner(((Color.D, Color.R, Color.B), (35, 17, 51))),
 ]
+
 solved_edges = [
     Edge(((Color.U, Color.F), (7, 19))),
     Edge(((Color.U, Color.B), (1, 46))),
@@ -42,18 +51,19 @@ solved_edges = [
 
 @dataclass
 class Cube:
-    """Represents the state of a Rubik's Cube.
+    """Represents the physical state and mechanics of a Rubik's Cube.
 
     Attributes:
-        cube (str): A 54-character string representing the color configuration
-                    of all faces (Up, Right, Front, Down, Left, Back). Each face
-                    lists its 9 elements row by row, starting from the top-left corner.
-                    Defaults to a fully solved cube state.
+        cube (CubeStr): A 54-character string representing the color configuration
+            of all faces (Up, Right, Front, Down, Left, Back). Each face
+            lists its 9 elements row by row, starting from the top-left corner.
+            Defaults to a fully solved cube state.
     """
 
     cube: CubeStr = field(default=SOLVED_CUBE)
 
     def __post_init__(self):
+        """Initializes movement mappings and instance-specific solved states."""
         self.moves_dict = {
             "U": lambda: self._u(),
             "U'": lambda: [self._u() for _ in range(3)],
@@ -74,10 +84,12 @@ class Cube:
             "B'": lambda: [self._b() for _ in range(3)],
             "B2": lambda: [self._b() for _ in range(2)],
         }
+        # Shallow copies to prevent mutating the global reference during parity adjustments
         self.solved_corners = solved_corners.copy()
         self.solved_edges = solved_edges.copy()
 
     def _rotate_face(self, start: int) -> None:
+        """Rotates a single 9-element face 90 degrees clockwise."""
         chars = list(self.cube)
         face = chars[start : start + 9]
         chars[start : start + 9] = [
@@ -94,6 +106,7 @@ class Cube:
         self.cube = CubeStr("".join(chars))
 
     def _u(self) -> None:
+        """Applies a U (Up) move."""
         self._rotate_face(0)
         c = list(self.cube)
         temp = c[18:21]
@@ -104,6 +117,7 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def _d(self) -> None:
+        """Applies a D (Down) move."""
         self._rotate_face(27)
         c = list(self.cube)
         temp = c[24:27]
@@ -114,6 +128,7 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def _l(self) -> None:
+        """Applies an L (Left) move."""
         self._rotate_face(36)
         c = list(self.cube)
         temp = [c[0], c[3], c[6]]
@@ -124,6 +139,7 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def _r(self) -> None:
+        """Applies an R (Right) move."""
         self._rotate_face(9)
         c = list(self.cube)
         temp = [c[2], c[5], c[8]]
@@ -134,6 +150,7 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def _f(self) -> None:
+        """Applies an F (Front) move."""
         self._rotate_face(18)
         c = list(self.cube)
         temp = [c[6], c[7], c[8]]
@@ -144,6 +161,7 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def _b(self) -> None:
+        """Applies a B (Back) move."""
         self._rotate_face(45)
         c = list(self.cube)
         temp = [c[0], c[1], c[2]]
@@ -154,18 +172,37 @@ class Cube:
         self.cube = CubeStr("".join(c))
 
     def apply_move(self, move: str) -> None:
+        """Applies a specific move to the cube based on WCA notation.
+
+        Args:
+            move (str): A standard Rubik's Cube move (e.g., "U", "R'", "F2").
+
+        Raises:
+            ValueError: If the provided move string is not supported or invalid.
+        """
         if move in self.moves_dict:
             self.moves_dict[move]()
         else:
             raise ValueError(f"invalid move: {move}")
 
     def __str__(self) -> str:
+        """Returns a string representation of the cube, formatted face by face.
+
+        Returns:
+            str: Six lines of text, where each line represents a 9-element face.
+        """
         cube_to_string = ""
         for i in range(6):
             cube_to_string += self.cube[i * 9 : 9 + i * 9] + "\n"
         return cube_to_string.strip()
 
     def adjust_for_parity(self) -> None:
+        """Adjusts the internal edge mapping to account for parity.
+
+        Swaps the positions of the UF (Up-Front) and UR (Up-Right) edges
+        in the `solved_edges` list to correctly simulate solving behavior
+        when the scramble has an odd number of corner targets (parity).
+        """
         colors_0, coords_0 = self.solved_edges[0]
         colors_3, coords_3 = self.solved_edges[3]
 
@@ -173,6 +210,13 @@ class Cube:
         self.solved_edges[3] = (colors_0, coords_3)
 
     def get_current_corners(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
+        """Maps original corner positions to their current positions on the scrambled cube.
+
+        Returns:
+            dict[tuple[int, int, int], tuple[int, int, int]]: A dictionary where the key
+                is the original (solved) coordinate tuple of the corner, and the value
+                is its current coordinate tuple, accounting for orientation (twist).
+        """
         result_dict = {}
         for corner_key in self.solved_corners:
             corner_value = ()
@@ -189,10 +233,18 @@ class Cube:
                         corner_value = corner[1][1:] + corner[1][0:1]
                     else:
                         corner_value = corner[1][2:3] + corner[1][:2]
-            result_dict[corner_key[1]] = corner_value
+                    result_dict[corner_key[1]] = corner_value
+                    break
         return result_dict
 
     def get_current_edges(self) -> dict[tuple[int, int], tuple[int, int]]:
+        """Maps original edge positions to their current positions on the scrambled cube.
+
+        Returns:
+            dict[tuple[int, int], tuple[int, int]]: A dictionary where the key
+                is the original (solved) coordinate tuple of the edge, and the value
+                is its current coordinate tuple, accounting for orientation (flip).
+        """
         result_dict = {}
         for edge_key in self.solved_edges:
             edge_value = ()
@@ -206,5 +258,6 @@ class Cube:
                         edge_value = edge[1]
                     else:
                         edge_value = edge[1][1:2] + edge[1][0:1]
-            result_dict[edge_key[1]] = edge_value
+                    result_dict[edge_key[1]] = edge_value
+                    break
         return result_dict

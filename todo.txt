@@ -1,4 +1,4 @@
 switch to tnoodle scramble generator
 get path of memo from scramble
-ruff check format
-docstrings
+dopisać proste testy, mock
+dodać wide movy
