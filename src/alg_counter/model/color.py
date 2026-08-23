@@ -2,18 +2,18 @@
 Module defining the colors/faces of a Rubik's Cube.
 """
 
-from enum import Enum, auto
+from enum import StrEnum
 
 
-class Color(Enum):
+class Color(StrEnum):
     """Represents the six standard faces (colors) of a Rubik's Cube."""
 
-    U = auto()  # Up
-    D = auto()  # Down
-    L = auto()  # Left
-    R = auto()  # Right
-    B = auto()  # Back
-    F = auto()  # Front
+    U = "U"  # Up
+    D = "D"  # Down
+    L = "L"  # Left
+    R = "R"  # Right
+    B = "B"  # Back
+    F = "F"  # Front
 
 
 def to_color(color: str) -> Color | None:

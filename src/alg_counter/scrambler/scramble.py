@@ -27,7 +27,9 @@ class Scramble:
         scramble_list = self.decode_scramble()
         all_moves = []
         for move in ["R", "L", "U", "D", "F", "B"]:
-            all_moves.extend([move, move + "'", move + "2"])
+            all_moves.extend(
+                [move, move + "'", move + "2", move + "w", move + "w'", move + "w2"]
+            )
         if not all(move in all_moves for move in scramble_list):
             raise ValueError("Invalid scramble")
 

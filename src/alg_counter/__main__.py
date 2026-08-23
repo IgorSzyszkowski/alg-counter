@@ -24,28 +24,28 @@ def parse_arguments() -> argparse.Namespace:
         prog="alg-counter",
         usage="alg-counter <scramble>",
         description="A tool for counting the number of algorithms needed to solve a Rubik's Cube blindfolded.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     arg_parser.add_argument(
         "--scramble",
         "-s",
         type=str,
         default="",
-        help="The valid WCA scramble string used to shuffle the cube."
+        help="The valid WCA scramble string used to shuffle the cube.",
     )
     arg_parser.add_argument(
         "--corner-buffer",
         "-c",
         type=str,
         default="UFR",
-        help="Corner buffer piece, given as three distinct face letters (e.g. UFR)."
+        help="Corner buffer piece, given as three distinct face letters (e.g. UFR).",
     )
     arg_parser.add_argument(
         "--edge-buffer",
         "-e",
         type=str,
         default="UF",
-        help="Edge buffer piece, given as two distinct face letters (e.g. UF)."
+        help="Edge buffer piece, given as two distinct face letters (e.g. UF).",
     )
     arg_parser.add_argument(
         "--top",
@@ -53,7 +53,7 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default="W",
         choices=VALID_COLORS,
-        help="Sticker color on the top face for the starting orientation."
+        help="Sticker color on the top face for the starting orientation.",
     )
     arg_parser.add_argument(
         "--front",
@@ -61,7 +61,7 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default="G",
         choices=VALID_COLORS,
-        help="Sticker color on the front face for the starting orientation."
+        help="Sticker color on the front face for the starting orientation.",
     )
     return arg_parser.parse_args()
 

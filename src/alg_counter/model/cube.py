@@ -5,8 +5,9 @@ Provides the `Cube` class used to simulate cube rotations and track the
 positions of edges and corners, which is crucial for algorithms counting (e.g., in BLD solving).
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import NewType
+from typing import Any, NewType
 
 from alg_counter.model.color import Color, to_color
 
@@ -21,7 +22,6 @@ Corner = NewType("Corner", tuple[tuple[Color, Color, Color], tuple[int, int, int
 Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
 """NewType representing an edge's colors and its corresponding indices on the cube string."""
 
-# Reference lists for a solved cube state
 solved_corners = [
     Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
     Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
@@ -48,6 +48,33 @@ solved_edges = [
     Edge(((Color.D, Color.R), (32, 16))),
 ]
 
+orientation_transition = {
+    "x": {
+        "L": "L",
+        "R": "R",
+        "U": "F",
+        "F": "D",
+        "D": "B",
+        "B": "U",
+    },
+    "z": {
+        "F": "F",
+        "B": "B",
+        "U": "L",
+        "D": "R",
+        "R": "U",
+        "L": "D",
+    },
+    "y": {
+        "U": "U",
+        "D": "D",
+        "R": "B",
+        "L": "F",
+        "F": "R",
+        "B": "L",
+    },
+}
+
 
 @dataclass
 class Cube:
@@ -62,9 +89,15 @@ class Cube:
 
     cube: CubeStr = field(default=SOLVED_CUBE)
 
+    moves_transition: dict[str, str] = field(init=False)
+    _physical: dict[str, Callable[[], Any]] = field(init=False)
+    moves_dict: dict[str, Callable[[], Any]] = field(init=False)
+    solved_corners: list = field(init=False)
+    solved_edges: list = field(init=False)
+
     def __post_init__(self):
         """Initializes movement mappings and instance-specific solved states."""
-        self.moves_dict = {
+        self._physical = {
             "U": lambda: self._u(),
             "U'": lambda: [self._u() for _ in range(3)],
             "U2": lambda: [self._u() for _ in range(2)],
@@ -84,9 +117,92 @@ class Cube:
             "B'": lambda: [self._b() for _ in range(3)],
             "B2": lambda: [self._b() for _ in range(2)],
         }
-        # Shallow copies to prevent mutating the global reference during parity adjustments
         self.solved_corners = solved_corners.copy()
         self.solved_edges = solved_edges.copy()
+        self.moves_transition = {
+            "R": "R",
+            "U": "U",
+            "L": "L",
+            "F": "F",
+            "B": "B",
+            "D": "D",
+        }
+        self.moves_dict = {
+            "U": lambda: self._execute_mapped("U"),
+            "U'": lambda: self._execute_mapped("U'"),
+            "U2": lambda: self._execute_mapped("U2"),
+            "R": lambda: self._execute_mapped("R"),
+            "R'": lambda: self._execute_mapped("R'"),
+            "R2": lambda: self._execute_mapped("R2"),
+            "L": lambda: self._execute_mapped("L"),
+            "L'": lambda: self._execute_mapped("L'"),
+            "L2": lambda: self._execute_mapped("L2"),
+            "D": lambda: self._execute_mapped("D"),
+            "D'": lambda: self._execute_mapped("D'"),
+            "D2": lambda: self._execute_mapped("D2"),
+            "F": lambda: self._execute_mapped("F"),
+            "F'": lambda: self._execute_mapped("F'"),
+            "F2": lambda: self._execute_mapped("F2"),
+            "B": lambda: self._execute_mapped("B"),
+            "B'": lambda: self._execute_mapped("B'"),
+            "B2": lambda: self._execute_mapped("B2"),
+            "x": lambda: self._rotate("x"),
+            "x'": lambda: self._rotate("x'"),
+            "x2": lambda: self._rotate("x2"),
+            "y": lambda: self._rotate("y"),
+            "y'": lambda: self._rotate("y'"),
+            "y2": lambda: self._rotate("y2"),
+            "z": lambda: self._rotate("z"),
+            "z'": lambda: self._rotate("z'"),
+            "z2": lambda: self._rotate("z2"),
+            "Rw": lambda: [self._execute_mapped("L"), self._rotate("x")],
+            "Rw'": lambda: [self._execute_mapped("L'"), self._rotate("x'")],
+            "Rw2": lambda: [self._execute_mapped("L2"), self._rotate("x2")],
+            "Lw": lambda: [self._execute_mapped("R"), self._rotate("x'")],
+            "Lw'": lambda: [self._execute_mapped("R'"), self._rotate("x")],
+            "Lw2": lambda: [self._execute_mapped("R2"), self._rotate("x2")],
+            "Uw": lambda: [self._execute_mapped("D"), self._rotate("y")],
+            "Uw'": lambda: [self._execute_mapped("D'"), self._rotate("y'")],
+            "Uw2": lambda: [self._execute_mapped("D2"), self._rotate("y2")],
+            "Dw": lambda: [self._execute_mapped("U"), self._rotate("y'")],
+            "Dw'": lambda: [self._execute_mapped("U'"), self._rotate("y")],
+            "Dw2": lambda: [self._execute_mapped("U2"), self._rotate("y2")],
+            "Fw": lambda: [self._execute_mapped("B"), self._rotate("z")],
+            "Fw'": lambda: [self._execute_mapped("B'"), self._rotate("z'")],
+            "Fw2": lambda: [self._execute_mapped("B2"), self._rotate("z2")],
+            "Bw": lambda: [self._execute_mapped("F"), self._rotate("z'")],
+            "Bw'": lambda: [self._execute_mapped("F'"), self._rotate("z")],
+            "Bw2": lambda: [self._execute_mapped("F2"), self._rotate("z2")],
+        }
+
+    def _execute_mapped(self, move: str) -> None:
+        """Tłumaczy ruch (np. U, F', R2) bazując na aktualnej orientacji kostki i go wykonuje."""
+        base_face = move[0]
+        modifier = move[1:] if len(move) > 1 else ""
+
+        physical_face = self.moves_transition[base_face]
+
+        self._physical[physical_face + modifier]()
+
+    def _rotate(self, rot: str) -> None:
+        """Aktualizuje słownik moves_transition w oparciu o rotację."""
+        axis = rot[0]
+        modifier = rot[1:] if len(rot) > 1 else ""
+
+        if modifier == "'":
+            times = 3
+        elif modifier == "2":
+            times = 2
+        else:
+            times = 1
+
+        for _ in range(times):
+            new_transition = {}
+            for logical_face in self.moves_transition:
+                new_transition[logical_face] = self.moves_transition[
+                    orientation_transition[axis][logical_face]
+                ]
+            self.moves_transition = new_transition
 
     def _rotate_face(self, start: int) -> None:
         """Rotates a single 9-element face 90 degrees clockwise."""

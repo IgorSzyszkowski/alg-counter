@@ -4,14 +4,14 @@ CLI tool that counts how many algorithms (executions) are needed to solve a Rubi
 
 ## About
 
-In 3BLD, pieces aren't solved one by one — each algorithm (commutator) resolves two pieces at once relative to a fixed **buffer** piece (e.g. corner UFR, edge UF). Scramble difficulty for a blindfolded solve is therefore measured in *algorithms*, not moves. `alg-counter` replays this tracing process on a simulated cube and returns the exact algorithm count, accounting for twists, flips, cycle breaks, and parity.
+In 3BLD, pieces aren't solved one by one — each algorithm (commutator) resolves two pieces at once relative to a fixed **buffer** piece (e.g. corner UFR, edge UF). **`alg-counter` calculates the execution count based on the standard 3-Style method, without incorporating advanced techniques (like floating buffers).** Scramble difficulty for a blindfolded solve is therefore measured in *algorithms*, not moves. The tool replays this tracing process on a simulated cube and returns the exact algorithm count, accounting for twists, flips, cycle breaks, and parity.
 
 ## How it works
 
 - The cube is modeled as a 54-character string; moves permute indices in that string.
 - Starting from the buffer, the tool traces the permutation cycle: every 2 targets = 1 executed algorithm.
 - If a cycle closes back into the buffer before all pieces are placed, a **cycle break** costs one extra target.
-- Correctly placed but misoriented pieces (twisted corners / flipped edges) are counted separately and paired into extra algorithms.
+- Correctly placed but misoriented pieces (twisted corners / flipped edges) are counted separately and paired into extra algorithms **optimally (e.g., resolving two twisted corners or two flipped edges per algorithm).**
 - An odd number of corner targets sets **parity**, adding one algorithm and swapping the UF/UR edge buffer before edges are traced.
 
 ## Project structure
