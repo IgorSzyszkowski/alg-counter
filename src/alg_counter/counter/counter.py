@@ -29,6 +29,8 @@ class Counter:
     cube: Cube
     corners_dict: dict[tuple[int, int, int], tuple[int, int, int]]
     edges_dict: dict[tuple[int, int], tuple[int, int]]
+    corner_targets: list[tuple[int, int, int]]
+    edge_targets: list[tuple[int, int]]
 
     def __init__(self, cube: Cube, state: State):
         """Initializes the Counter and extracts the initial corner states.
@@ -42,6 +44,8 @@ class Counter:
         self.corners_dict = cube.get_current_corners()
         self.edges_dict = {}
         self.extend_corners_dict()
+        self.corner_targets = []
+        self.edge_targets = []
 
     def count(self) -> int:
         """Runs the full simulation and calculates the total algorithms needed.
@@ -81,6 +85,7 @@ class Counter:
 
         target = self.corners_dict[self.state.corner_buffer_position]
         self.remove_element(self.state.corner_buffer_position)
+        self.corner_targets.append(target)
 
         # Total corners minus buffer = 7
         while round(solved) < 7:
@@ -94,6 +99,7 @@ class Counter:
                 solved += 1
                 self.remove_element(target)
                 target = new_target
+            self.corner_targets.append(target)
             targets += 1
 
         if targets % 2 == 1:
@@ -137,6 +143,7 @@ class Counter:
 
         # Total edges minus buffer = 11
         while solved < 11:
+            self.edge_targets.append(target)
             if set(target) == set(self.state.edge_buffer_position):
                 target_broken_into = next(iter(self.edges_dict.keys()))
                 new_target = self.edges_dict[target_broken_into]

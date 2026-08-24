@@ -1,4 +1,2 @@
 switch to tnoodle scramble generator
 get path of memo from scramble
-dodać wide movy i testy do tego
-napisać w readme że bez zaawansowanych technik
