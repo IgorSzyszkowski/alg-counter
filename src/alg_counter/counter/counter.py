@@ -85,21 +85,21 @@ class Counter:
 
         target = self.corners_dict[self.state.corner_buffer_position]
         self.remove_element(self.state.corner_buffer_position)
-        self.corner_targets.append(target)
 
         # Total corners minus buffer = 7
         while round(solved) < 7:
             if set(target) == set(self.state.corner_buffer_position):
                 target_broken_into = next(iter(self.corners_dict.keys()))
+                self.corner_targets.append(target_broken_into)
                 new_target = self.corners_dict[target_broken_into]
                 self.change_element(target_broken_into, target)
                 target = new_target
             else:
+                self.corner_targets.append(target)
                 new_target = self.corners_dict[target]
                 solved += 1
                 self.remove_element(target)
                 target = new_target
-            self.corner_targets.append(target)
             targets += 1
 
         if targets % 2 == 1:
@@ -143,13 +143,14 @@ class Counter:
 
         # Total edges minus buffer = 11
         while solved < 11:
-            self.edge_targets.append(target)
             if set(target) == set(self.state.edge_buffer_position):
                 target_broken_into = next(iter(self.edges_dict.keys()))
+                self.edge_targets.append(target_broken_into)
                 new_target = self.edges_dict[target_broken_into]
                 self.change_element(target_broken_into, target)
                 target = new_target
             else:
+                self.edge_targets.append(target)
                 new_target = self.edges_dict[target]
                 solved += 1
                 self.remove_element(target)

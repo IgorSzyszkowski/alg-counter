@@ -24,28 +24,28 @@ Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
 
 solved_corners = [
     Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
-    Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
-    Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
     Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
-    Corner(((Color.D, Color.F, Color.R), (29, 26, 15))),
-    Corner(((Color.D, Color.L, Color.F), (27, 44, 24))),
-    Corner(((Color.D, Color.B, Color.L), (33, 53, 42))),
-    Corner(((Color.D, Color.R, Color.B), (35, 17, 51))),
+    Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
+    Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
+    Corner(((Color.R, Color.D, Color.F), (15, 29, 26))),
+    Corner(((Color.L, Color.F, Color.D), (44, 24, 27))),
+    Corner(((Color.R, Color.B, Color.D), (17, 51, 35))),
+    Corner(((Color.L, Color.D, Color.B), (42, 33, 53))),
 ]
 
 solved_edges = [
     Edge(((Color.U, Color.F), (7, 19))),
-    Edge(((Color.U, Color.B), (1, 46))),
-    Edge(((Color.U, Color.L), (3, 37))),
     Edge(((Color.U, Color.R), (5, 10))),
-    Edge(((Color.F, Color.L), (21, 41))),
-    Edge(((Color.F, Color.R), (23, 12))),
-    Edge(((Color.L, Color.B), (39, 50))),
+    Edge(((Color.U, Color.L), (3, 37))),
+    Edge(((Color.U, Color.B), (1, 46))),
+    Edge(((Color.R, Color.F), (12, 23))),
+    Edge(((Color.L, Color.F), (41, 21))),
+    Edge(((Color.R, Color.D), (16, 32))),
+    Edge(((Color.L, Color.D), (43, 30))),
     Edge(((Color.R, Color.B), (14, 48))),
-    Edge(((Color.D, Color.F), (28, 25))),
-    Edge(((Color.D, Color.B), (34, 52))),
-    Edge(((Color.D, Color.L), (30, 43))),
-    Edge(((Color.D, Color.R), (32, 16))),
+    Edge(((Color.L, Color.B), (39, 50))),
+    Edge(((Color.F, Color.D), (25, 28))),
+    Edge(((Color.B, Color.D), (52, 34))),
 ]
 
 orientation_transition = {
@@ -320,10 +320,10 @@ class Cube:
         when the scramble has an odd number of corner targets (parity).
         """
         colors_0, coords_0 = self.solved_edges[0]
-        colors_3, coords_3 = self.solved_edges[3]
+        colors_1, coords_1 = self.solved_edges[1]
 
-        self.solved_edges[0] = (colors_3, coords_0)
-        self.solved_edges[3] = (colors_0, coords_3)
+        self.solved_edges[0] = (colors_1, coords_0)
+        self.solved_edges[1] = (colors_0, coords_1)
 
     def get_current_corners(self) -> dict[tuple[int, int, int], tuple[int, int, int]]:
         """Maps original corner positions to their current positions on the scrambled cube.

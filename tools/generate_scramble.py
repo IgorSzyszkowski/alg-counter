@@ -76,7 +76,7 @@ def get_path(
     corner_buffer: str = "UFR",
     edge_buffer: str = "UF",
     orientation: tuple[str, str] = ("W", "G"),
-) -> tuple[list[tuple[int, int, int]], list[tuple[int, int, int]]]:
+) -> list[str]:
     cube = Cube()
     scramble = Scramble(scr)
     scramble.scramble_cube(cube)
@@ -87,7 +87,7 @@ def get_path(
     )
     counter = Counter(cube, state)
     counter.count()
-    return counter.corner_targets, counter.edge_targets
+    return translate_path(counter.corner_targets), translate_path(counter.edge_targets)
 
 def translate_path(path: tuple[int, int, int] | tuple[int, int, int]) -> list[str]:
     result_list = [f"{to_letters_dict[path[2 * i]]}{to_letters_dict[path[2 * i + 1]]}" for i in range(len(path) // 2)]
@@ -96,8 +96,11 @@ def translate_path(path: tuple[int, int, int] | tuple[int, int, int]) -> list[st
     return result_list
 
 if __name__ == "__main__":
-    scramble = Scramble.get_wca_scramble()
+    scramble = ""
+    corner_path, edge_path = [], []
+    wanted_corners = ["AB"]
+    wanted_edges = ["DE"]
+    while (not any([(pair in corner_path) for pair in wanted_corners]) and wanted_corners) or (not any([(pair in edge_path) for pair in wanted_edges]) and wanted_edges) or scramble == "":
+        scramble = Scramble.get_wca_scramble()
+        corner_path, edge_path = get_path(scramble)
     print(scramble)
-    corner_path, edge_path = get_path(scramble)
-    print(translate_path(corner_path))
-    print(translate_path(edge_path))

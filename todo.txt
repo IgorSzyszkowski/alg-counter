@@ -1,2 +1,2 @@
 switch to tnoodle scramble generator
-get path of memo from scramble
+sprawdzić czy na pewno działa adjust for pariti na innych orientacjach
