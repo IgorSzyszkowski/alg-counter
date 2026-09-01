@@ -95,12 +95,35 @@ def translate_path(path: tuple[int, int, int] | tuple[int, int, int]) -> list[st
         result_list.append(to_letters_dict[path[len(path) - 1]])
     return result_list
 
+def add_opposite(pairs: list[str]) -> None:
+    return [pairs.append(pair[1] + pair[0]) for pair in pairs.copy()]
+
 if __name__ == "__main__":
-    scramble = ""
-    corner_path, edge_path = [], []
-    wanted_corners = ["AB"]
-    wanted_edges = ["DE"]
-    while (not any([(pair in corner_path) for pair in wanted_corners]) and wanted_corners) or (not any([(pair in edge_path) for pair in wanted_edges]) and wanted_edges) or scramble == "":
-        scramble = Scramble.get_wca_scramble()
-        corner_path, edge_path = get_path(scramble)
-    print(scramble)
+    wanted_corners = ["EN", "EU", "IJ", "IW", "SW", "UW"] #EN EU
+    add_opposite(wanted_corners)
+    wanted_edges = []
+    add_opposite(wanted_edges)
+    for i in range(30):
+        while True:
+            scramble = Scramble.get_wca_scramble()
+            n_algs = count_algorithms(scramble)
+            corner_path, edge_path = get_path(scramble)
+
+            # Zliczamy, ile elementów z listy `wanted_corners` występuje w `corner_path`
+            matching_corners = sum(1 for pair in corner_path if pair in wanted_corners)
+            matching_edges = sum(1 for pair in edge_path if pair in wanted_edges)
+
+            # Warunki akceptacji scramble'a:
+            # 1. Co najmniej 2 elementy z `wanted_corners` muszą znajdować się w `corner_path`
+            if wanted_corners and matching_corners < 2:
+                continue
+                
+            # 2. Jeśli zdefiniowano `wanted_edges`, w `edge_path` musi znaleźć się co najmniej 1
+            if wanted_edges and matching_edges < 1:
+                continue
+                
+            # 3. Liczba algorytmów w przedziale (0, 8]
+            if 0 < n_algs <= 8:
+                break
+
+        print(f"{i}:", scramble)

@@ -24,8 +24,8 @@ Edge = NewType("Edge", tuple[tuple[Color, Color], tuple[int, int]])
 
 solved_corners = [
     Corner(((Color.U, Color.R, Color.F), (8, 9, 20))),
-    Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
     Corner(((Color.U, Color.L, Color.B), (0, 36, 47))),
+    Corner(((Color.U, Color.B, Color.R), (2, 45, 11))),
     Corner(((Color.U, Color.F, Color.L), (6, 18, 38))),
     Corner(((Color.R, Color.D, Color.F), (15, 29, 26))),
     Corner(((Color.L, Color.F, Color.D), (44, 24, 27))),
